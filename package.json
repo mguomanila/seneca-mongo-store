@@ -1,5 +1,5 @@
 {
-  "name": "seneca-mongo-store",
+  "name": "aeneid-mongo-store",
   "version": "4.0.0",
   "description": "Seneca data store plugin for MongoDB",
   "main": "mongo-store.js",

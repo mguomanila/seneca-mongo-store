@@ -107,12 +107,11 @@ function metaquery(qent, q) {
 }
 
 module.exports = function (opts) {
-  var seneca = this
-  var desc
-
-  var dbinst = null
-  var dbclient = null
-  var collmap = {}
+  let desc
+  let dbinst = null
+  let dbclient = null
+  const collmap = {}
+  const seneca = this
 
   function error(args, err, cb) {
     if (err) {
@@ -140,9 +139,12 @@ module.exports = function (opts) {
     }
 
     conf.db = conf.db || conf.name
+    conf.options = conf.options || {}
 
     // Connect using the URI
-    MongoClient.connect(conf.uri, function (err, client) {
+    MongoClient.connect(conf.uri, conf.options, connect)
+    
+    function connect(err, client) {
       if (err) {
         return seneca.die('connect', err, conf)
       }
@@ -151,7 +153,7 @@ module.exports = function (opts) {
       dbinst = client.db(conf.db)
       seneca.log.debug('init', 'db open', conf.db)
       cb(null)
-    })
+    }
   }
 
   function getcoll(args, ent, cb) {
@@ -171,7 +173,7 @@ module.exports = function (opts) {
     }
   }
 
-  var store = {
+  const store = Object.assign({}, {
     name: name,
 
     close: function (args, cb) {
@@ -266,7 +268,7 @@ module.exports = function (opts) {
 
           coll.findOne(qq, mq, function (err, entp) {
             if (!error(args, err, cb)) {
-              var fent = null
+              let fent
               if (entp) {
                 entp.id = idstr(entp._id)
                 delete entp._id
@@ -318,7 +320,7 @@ module.exports = function (opts) {
       var q = args.q
 
       var all = q.all$ // default false
-      var load = null == q.load$ ? false : q.load$ // default false
+      var load = null == q.load$ ? true : q.load$ // default true
 
       getcoll(args, qent, function (err, coll) {
         if (!error(args, err, cb)) {
@@ -361,7 +363,9 @@ module.exports = function (opts) {
                     var ent = load ? entp : null
                     cb(err, ent)
                   })
-                } else cb(null)
+                } else {
+                  cb(null)
+                }
               }
             })
           }
@@ -384,7 +388,7 @@ module.exports = function (opts) {
         }
       })
     },
-  }
+  })
 
   var meta = seneca.store.init(seneca, opts, store)
   desc = meta.desc
